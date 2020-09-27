@@ -9,6 +9,7 @@
 #include <random>
 #include <sstream>
 #include <limits>
+#include <unordered_map>
 
 #include "ListNode.hpp"
 
@@ -23,20 +24,20 @@ public:
      */
     class iterator {
         ListNode<T>* field;
+        iterator* begin;
+        iterator* end;
 
         public:
         //There would be a constructor that does nothing.
             iterator();
             iterator(const iterator& i);
+            iterator(ListNode<T>* node);
             
             bool operator ==(const iterator& rhs);
             bool operator !=(const iterator& rhs);
             void operator ++();
             void operator --();
             T& operator *();
-
-            iterator begin(void);
-            iterator end(void);
     };
 
     /*
@@ -46,6 +47,9 @@ public:
     /*
      * Different constructor functions for users.
      */
+
+    iterator begin(void);
+    iterator end(void);
 
     List() = delete;
     List(T* arr, int size);
@@ -72,6 +76,7 @@ public:
     void sort(bool bigger = false);
     void merge(List<T>& list);
     void clear(void);
+    void unique(void);
 
     friend ListNode<T>* doMerge(ListNode<T>* left, ListNode<T>* right);
     friend ListNode<T>* doSort(ListNode<T>* head);
@@ -154,6 +159,7 @@ List<T>::List(List& list) {
         ptr2 = ptr2->next;
         this->size += 1;
     }
+
 }
 
 template<typename T>
@@ -166,7 +172,7 @@ void List<T>::insertHandler(T value, int position) {
     if (position >= size) {
         std::cout << "Sorry, you have inputed wrong posistion! ERROR_1: Index out of bound." << std::endl;
         return;
-    } else if (size - 1== position) {
+    } else if (size - 1 == position) {
         this->push_back(value);
         this->size += 1;
         return;
@@ -188,21 +194,29 @@ template<typename T>
 void List<T>::deleteHandler(T value) {
     ListNode<T>* ptr = this->head;
 
-    while (ptr->next != nullptr) {
-        if (ptr->next->val == value) {
+    while (ptr != nullptr) {
+        if (ptr->next == nullptr && ptr->val == value) {
+            ptr = nullptr;
+            this->size -= 1;
+            return;
+        } else if (ptr->next != nullptr && ptr->next->val == value) {
             ListNode<T>* tmp = ptr->next;
             ptr->next = tmp->next;
             delete tmp;
+            tmp = nullptr;
             this->size -= 1;
-            return;
+            //return;
         }
         ptr = ptr->next;
     }
 
-    if (ptr->val != value) {
+    /*if (ptr->val != value) {
         std::cout << "Could not find any corresponding value to delete. Please Try again." << std::endl;
         return;
-    } else { delete ptr; }
+    } else {
+        ptr = nullptr;
+        this->size -= 1;
+    }*/
 }
 
 template<typename T>
@@ -414,6 +428,16 @@ void List<T>::iterator::operator ++ (void) {
 
 template<typename T>
 void List<T>::iterator::operator -- (void) {
+    UNIMPLEMENTED
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::begin(void) {
+    UNIMPLEMENTED
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::end(void) {
     UNIMPLEMENTED
 }
 
