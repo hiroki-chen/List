@@ -166,15 +166,21 @@ void List<T>::insertHandler(T value, int position) {
     if (position >= size) {
         std::cout << "Sorry, you have inputed wrong posistion! ERROR_1: Index out of bound." << std::endl;
         return;
+    } else if (size - 1== position) {
+        this->push_back(value);
+        this->size += 1;
+        return;
     } else {
         int i = -1;
         ListNode<T>* ptr = this->head;
 
-        while (i++ != position) {
+        while (i++ != position - 1) {
             ptr = ptr->next;
-            this->size += 1;
         }
-        ptr->val = value;
+        ListNode<T>* tmp = ptr->next;
+        ptr->next = new ListNode<T>(value);
+        ptr->next->next = tmp;
+        this->size += 1;
     }
 }
 
@@ -194,7 +200,7 @@ void List<T>::deleteHandler(T value) {
     }
 
     if (ptr->val != value) {
-        std::cout << "Could not find any corresponding value to delete. Please Try again" << std::endl;
+        std::cout << "Could not find any corresponding value to delete. Please Try again." << std::endl;
         return;
     } else { delete ptr; }
 }
