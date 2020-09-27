@@ -27,17 +27,17 @@ public:
         iterator* begin;
         iterator* end;
 
-        public:
+    public:
         //There would be a constructor that does nothing.
-            iterator();
-            iterator(const iterator& i);
-            iterator(ListNode<T>* node);
+        iterator();
+        iterator(const iterator& i);
+        iterator(ListNode<T>* node);
             
-            bool operator ==(const iterator& rhs);
-            bool operator !=(const iterator& rhs);
-            void operator ++();
-            void operator --();
-            T& operator *();
+        bool operator ==(const iterator& rhs);
+        bool operator !=(const iterator& rhs);
+        void operator ++();
+        void operator --();
+        T& operator *();
     };
 
     /*
@@ -89,6 +89,11 @@ public:
     void pop_front(void);
     int listSize(void);
     bool empty(void);
+
+    bool operator == (List<T> list);
+    bool operator != (List<T> list);
+    void operator += (T value);
+    void operator += (List<T>& list) = delete; // You cannot use this because this is a forward list.
 
     /*
      * For test.
@@ -149,7 +154,7 @@ List<T>::List(T* arr, int size) {
 template<typename T>
 List<T>::List(List& list) {
     this->head = new ListNode<T>(INT_MIN);
-    this->size = 0;
+    this->size = list.size;
     ListNode<T>* ptr1 = head;
     ListNode<T>* ptr2 = list.head->next;
 
@@ -157,7 +162,6 @@ List<T>::List(List& list) {
         ptr1->next = new ListNode<T>(ptr2->val);
         ptr1 = ptr1->next;
         ptr2 = ptr2->next;
-        this->size += 1;
     }
 
 }
@@ -392,6 +396,32 @@ void List<T>::clear(void) {
 }
 
 template<typename T>
+bool List<T>::operator == (List<T> list) {
+    if (this->size != list.size) { return false; }
+
+    ListNode<T>* ptr1 = this->head->next;
+    ListNode<T>* ptr2 = list.head->next;
+
+    while (ptr1 != nullptr && ptr2 != nullptr) {
+        if (ptr1->val != ptr2->val) { return false; }
+        ptr1 = ptr1->next;
+        ptr2 = ptr2->next;
+    }
+
+    return true;
+}
+
+template<typename T>
+bool List<T>::operator != (List<T> list) {
+    return !(this == list);
+}
+
+template<typename T>
+void List<T>::operator += (T value) {
+    this->push_back(value);
+}
+
+template<typename T>
 List<T>::~List() {
     ListNode<T>* tmp;
     while (head->next != nullptr) {
@@ -440,5 +470,6 @@ template<typename T>
 typename List<T>::iterator List<T>::end(void) {
     UNIMPLEMENTED
 }
+
 
 #endif
