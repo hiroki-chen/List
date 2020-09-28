@@ -2,26 +2,21 @@
 #define _ERRORLOG_HPP_
 
 #include <iostream>
+#include <exception>
 
-const std::string error_1 = "Error_1";
-const std::string error_2 = "Error_2";
-const std::string error_3 = "Error_3";
-const std::string error_4 = "Error_4";
-
-enum errorType {
-    OUT_OF_INDEX,
-    VALUE_NOT_EXIST,
-    ACCESS_NULLPTR,
-    UNEXPECTED_ERROR
+class ListOutOfIndexException : public std::exception {
+    const char* info;
+public:
+    ListOutOfIndexException() : info("You cannot access a list in such way; out of bound!!") {}
+    const char* what() const noexcept override { return info; }
 };
 
-class ErrorLog {
-errorType type;
-std::string errorInfo;
+class IteratorOutOfIndexException : public std::exception {
+    const char* info;
 
 public:
-    friend std::ostream& operator << (std::ostream& os, ErrorLog& e);
-    void operator << (std::string& errorInfo);
+    IteratorOutOfIndexException() : info("Iterator is out ouf bound!!") {}
+    const char* what() const noexcept override { return info; }
 };
 
 #endif

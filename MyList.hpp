@@ -12,33 +12,60 @@
 #include <unordered_map>
 
 #include "ListNode.hpp"
+#include "ErrorLog.hpp"
 
 template<typename T>
 class List {
     int size;
     ListNode<T>* head;
+    ListNode<T>* tail;
 
 public:
+    class const_iterator {
+    private:
+    /**
+     * Because constant property of iterator may be, there should exist two overloading versions for each kind of iterator.
+     * Or the system will throw error.
+     */
+        //bool notEnd;
+        // I personally suppose that it may unnecessarily to mark an iterator as end_iterator.
+        void assertBoundary(void) {
+            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+        }
+
+        void assertBoundary(void) const {
+            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+        }
+
+    protected:
+        ListNode<T>* field;
+        friend class List<T>;
+
+    protected:
+        const_iterator() : field(nullptr) {}
+        const_iterator(ListNode<T>* node) : field(node) {}
+
+    public:
+        const T& operator * (void) const;
+        const_iterator& operator ++ (void);
+        const_iterator operator ++ (int);
+        bool operator == (const const_iterator& it) const;
+        bool operator != (const const_iterator& it) const;
+
+    };
+    
+    class iterator : public const_iterator {
+    public:
+        T& operator * (void);
+        const T& operator * (void) const;
+        iterator& operator ++ (void);
+
+        iterator() : const_iterator() {}
+        iterator(ListNode<T>* node) : const_iterator(node) {}
+    };
     /*
      * Iterator for class List.
      */
-    class iterator {
-        ListNode<T>* field;
-        iterator* begin;
-        iterator* end;
-
-    public:
-        //There would be a constructor that does nothing.
-        iterator();
-        iterator(const iterator& i);
-        iterator(ListNode<T>* node);
-            
-        bool operator ==(const iterator& rhs);
-        bool operator !=(const iterator& rhs);
-        void operator ++();
-        void operator --();
-        T& operator *();
-    };
 
     /*
      * Constant iterator is disabled.
@@ -48,8 +75,11 @@ public:
      * Different constructor functions for users.
      */
 
+public:
     iterator begin(void);
     iterator end(void);
+    const_iterator begin(void) const;
+    const_iterator end(void) const;
 
     List() = delete;
     List(T* arr, int size);
@@ -117,8 +147,44 @@ List<T>::List(std::vector<T> arr) {
         ptr = ptr->next;
         size ++;
     }
+    this->tail = ptr->next;
 }
 
+template<typename T>
+List<T>::List(T* arr, int size) {
+    this->head = new ListNode<T>(INT_MIN);
+    this->size = size;
+    ListNode<T>* ptr = head;
+
+    for (int i = 0; i < size; i++) {
+        ptr->next = new ListNode<T>(*(arr + i));
+        ptr = ptr->next;
+    }
+
+    this->tail = ptr->next;
+}
+
+
+template<typename T>
+List<T>::List(List& list) {
+    this->head = new ListNode<T>(INT_MIN);
+    this->size = list.size;
+    ListNode<T>* ptr1 = head;
+    ListNode<T>* ptr2 = list.head->next;
+
+    while (ptr2 != nullptr) {
+        ptr1->next = new ListNode<T>(ptr2->val);
+        ptr1 = ptr1->next;
+        ptr2 = ptr2->next;
+    }
+    this->tail = ptr1->next;
+}
+
+template<typename T>
+List<T>::List(ListNode<T>* head) {
+    this->head = head;
+    this->tail = tail;
+}
 
 template<typename T>
 void List<T>::print(void) {
@@ -137,38 +203,24 @@ void List<T>::print(void) {
     std::cout << std::endl;
 }
 
-
 template<typename T>
-List<T>::List(T* arr, int size) {
-    this->head = new ListNode<T>(INT_MIN);
-    this->size = size;
-    ListNode<T>* ptr = head;
-
-    for (int i = 0; i < size; i++) {
-        ptr->next = new ListNode<T>(*(arr + i));
-        ptr = ptr->next;
-    }
-}
-
-
-template<typename T>
-List<T>::List(List& list) {
-    this->head = new ListNode<T>(INT_MIN);
-    this->size = list.size;
-    ListNode<T>* ptr1 = head;
-    ListNode<T>* ptr2 = list.head->next;
-
-    while (ptr2 != nullptr) {
-        ptr1->next = new ListNode<T>(ptr2->val);
-        ptr1 = ptr1->next;
-        ptr2 = ptr2->next;
-    }
-
+typename List<T>::iterator List<T>::begin(void) {
+    return iterator(this->head->next);
 }
 
 template<typename T>
-List<T>::List(ListNode<T>* head) {
-    this->head = head;
+typename List<T>::const_iterator List<T>::begin(void) const {
+    return const_iterator(this->head->next);
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::end(void) {
+    return iterator(this->tail);
+}
+
+template<typename T>
+typename List<T>::const_iterator List<T>::end(void) const {
+    return const_iterator(tail);
 }
 
 template<typename T>
@@ -401,6 +453,56 @@ void List<T>::clear(void) {
 }
 
 template<typename T>
+const T& List<T>::const_iterator::operator * (void) const {
+    return this->field->val;
+}
+
+template<typename T>
+typename List<T>::const_iterator&
+List<T>::const_iterator::operator ++ (void) {
+    this->field = this->field->next;
+    //this->assertBoundary();
+    return *this;
+}
+
+template<typename T>
+typename List<T>::const_iterator
+List<T>::const_iterator::operator ++ (int) {
+    const_iterator old(this->field);
+    ++(*this);
+    return old;
+}
+
+template<typename T>
+bool List<T>::const_iterator::operator == (const const_iterator& it) const {
+    return this->field == it.field;
+}
+
+template<typename T>
+bool List<T>::const_iterator::operator != (const const_iterator& it) const {
+    return !(*this == it);
+}
+
+template<typename T>
+T& List<T>::iterator::operator * (void) {
+    this->assertBoundary();
+    return this->field->val;
+}
+
+template<typename T>
+const T& List<T>::iterator::operator * (void) const {
+    this->assertBoundary();
+    return const_iterator::operator*();
+}
+
+template<typename T>
+typename List<T>::iterator& List<T>::iterator::operator ++ (void) {
+    this->field = this->field->next;
+    //this->assertBoundary();
+    return *this;
+}
+
+template<typename T>
 bool List<T>::operator == (List<T> list) {
     if (this->size != list.size) { return false; }
 
@@ -436,45 +538,5 @@ List<T>::~List() {
     }
     delete head;
 }
-
-//For iterators.
-
-template<typename T>
-bool List<T>::iterator::operator == (const iterator& rhs) {
-    return this->field->val == rhs->field->val;
-}
-
-template<typename T>
-bool List<T>::iterator::operator != (const iterator& rhs) {
-    return this->field->val != rhs->field->val;
-}
-
-template<typename T>
-T& List<T>::iterator::operator * (void) {
-    return this->field->val;
-}
-
-template<typename T>
-void List<T>::iterator::operator ++ (void) {
-    if (this->field->next != nullptr) {
-        this->field = this->field->next;
-    }
-}
-
-template<typename T>
-void List<T>::iterator::operator -- (void) {
-    UNIMPLEMENTED
-}
-
-template<typename T>
-typename List<T>::iterator List<T>::begin(void) {
-    UNIMPLEMENTED
-}
-
-template<typename T>
-typename List<T>::iterator List<T>::end(void) {
-    UNIMPLEMENTED
-}
-
 
 #endif

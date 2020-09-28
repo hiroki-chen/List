@@ -9,6 +9,10 @@ struct ListNode {
     ListNode() : next(nullptr) {}
     ListNode(int _val) : val(_val), next(nullptr) {}
     ListNode(int _val, ListNode* _next) : val(_val), next(_next) {}
+
+    bool operator == (ListNode<T>* head);
+    bool operator != (ListNode<T>* head);
+    T& operator * (void);
 };
 
 #endif

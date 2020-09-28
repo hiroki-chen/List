@@ -1,8 +1,13 @@
 #include "MyList.hpp"
+#include "ErrorLog.hpp"
+
+/*
+ * Notice: Index of the list starts at 0.
+ */ 
 
 int main() {
     std::vector<int> arr;
-    int a[10] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 10};
+    int a[10] = {1, 2, 3, 4, 5, 6, 6, 6, 6, 7};
     char b[5] = {'a', 'b', 'c', 'd', 'e'};
 
     std::random_device e;
@@ -15,25 +20,18 @@ int main() {
     List<int> test(arr);
     List<int> test2(a, 10);
     List<int> test3(test);
-    List<char> test4(b, 5); 
-    test.print();
-    test2.print();
-    test3.print();
-    test4.print();
-
+    List<char> test4(b, 5);
+    List<int> test5(a, 10);
+    
     test.sort(true);
+    int i = 1;
+    for (List<int>::iterator it = test5.begin(); it != test5.end(); ++it) {
+        std::cout << i++ << std::endl;
+    }
+    //test.clear();
+    std::cout << test.listSize() << std::endl;
     test.print();
-
-    std::cout << "test.listSize(): " << test.listSize() << std::endl;
-    std::cout << "test.front(): " << test.front() << std::endl;
-
-    std::cout << "doing merge" << std::endl;
-  
-    test2.merge(test);
-    test2.pop_back();
-    test2.print();
-    test.clear();
-    test.print();
+    
 
     return 0;
 }
