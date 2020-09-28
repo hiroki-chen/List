@@ -57,7 +57,7 @@ This is a basic datastructure for **list**.
     void operator += (List<T>& list) = delete; // You cannot use this because this is a forward list.
 ```
 
-##NOTICE
+## NOTICE
 Current version is yet not stable and may contain numerous bugs that can be deadly to your programming as well. Also it may be low in effiency. 
 If you want to depoly any applications on your devices, please read the source code rather carefully, while I am still working hard on enhancing the performance of 
 the data structure.
@@ -73,14 +73,14 @@ List<int> test5(a, 10);
 **stringify is about to be supported :)*
 
 
-##Update Log
-###2020-9-26
+## Update Log
+### 2020-9-26
 1. Added orginal version.
 
-###2020-9-27
+### 2020-9-27
 1. Fixed bugs of `insertHandler(T, int)`, so it will not collide with `deleteHandler`;
 2. Fixed bugs of `deleteHandler(T)`. Now you can delete more than one elements.
 3. Added `iterator` structure, but yet to be fully drived.
 
-###2020-9-28
+### 2020-9-28
 1. Fixed bugs of `deleteHandler(T)`. Now it can delete successive values. Overloaded version will be soon supported.
