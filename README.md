@@ -82,6 +82,11 @@ List<int> test5(a, 10);
 2. Fixed bugs of `deleteHandler(T)`. Now you can delete more than one elements.
 3. Added `iterator` structure, but yet to be fully drived.
 
-### 2020-9-28
+### 2020-9-28 1
 1. Fixed bugs of `deleteHandler(T)`. Now it can delete successive values. Overloaded version will be soon supported;
 2. Added new features about `ErrorLog` which is able to print error informations on the screen without using `std::cout`.
+
+### 2020-9-28 2
+1. Deleted `ErrorLog`, and updated to `exception` class;
+2. Added basic support for `List<T>::iterator` for `List`, and with error checking.
+3. Abandoned some old ideas.
