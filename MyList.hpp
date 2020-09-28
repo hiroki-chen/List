@@ -257,7 +257,7 @@ void List<T>::deleteHandler(T value) {
             return;
         } else if (ptr->next != nullptr && ptr->next->val == value) {
             int cnt = 1;
-            ListNode<T>* tmp = ptr->next;
+            ListNode<T>* tmp = ptr->next->next;
             while (tmp != nullptr && tmp->val == value) {
                 tmp = tmp->next;
                 cnt ++;
