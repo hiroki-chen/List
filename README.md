@@ -83,4 +83,5 @@ List<int> test5(a, 10);
 3. Added `iterator` structure, but yet to be fully drived.
 
 ### 2020-9-28
-1. Fixed bugs of `deleteHandler(T)`. Now it can delete successive values. Overloaded version will be soon supported.
+1. Fixed bugs of `deleteHandler(T)`. Now it can delete successive values. Overloaded version will be soon supported;
+2. Added new features about `ErrorLog` which is able to print error informations on the screen without using `std::cout`.
