@@ -204,11 +204,16 @@ void List<T>::deleteHandler(T value) {
             this->size -= 1;
             return;
         } else if (ptr->next != nullptr && ptr->next->val == value) {
+            int cnt = 1;
             ListNode<T>* tmp = ptr->next;
-            ptr->next = tmp->next;
-            delete tmp;
-            tmp = nullptr;
-            this->size -= 1;
+            while (tmp != nullptr && tmp->val == value) {
+                tmp = tmp->next;
+                cnt ++;
+            }
+            this->size -= cnt;
+            ptr->next = tmp;
+            ptr = tmp;
+            continue;
             //return;
         }
         ptr = ptr->next;
