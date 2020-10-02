@@ -90,3 +90,8 @@ List<int> test5(a, 10);
 1. Deleted `ErrorLog`, and updated to `exception` class;
 2. Added basic support for `List<T>::iterator` for `List`, and with error checking.
 3. Abandoned some old ideas.
+
+### 2020-10-2
+1. Added more support for `iterator`;
+2. Added pointer for previous nodes;
+3. Fixed some bugs.
