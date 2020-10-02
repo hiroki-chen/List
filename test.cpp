@@ -23,15 +23,21 @@ int main() {
     List<char> test4(b, 5);
     List<int> test5(a, 10);
     
-    test.sort(true);
+    test2.sort();
+    test2.insertHandler(test2.begin(), 3);
+    test2.updateHandler(test2.begin(), 4);
+    test2.push_front(333);
     int i = 1;
-    for (List<int>::iterator it = test5.begin(); it != test5.end(); ++it) {
-        std::cout << i++ << std::endl;
+    for (List<int>::iterator it = test2.begin(); it != test2.end(); ++it) {
+        std::cout << *it << std::endl;
+        //if (i ++ == 3) { test2.erase(it);}
     }
+    List<int>::iterator it = test2.begin();
+    it.advance(1);
+    std::cout << *it << std::endl;
     //test.clear();
-    std::cout << test.listSize() << std::endl;
-    test.print();
-    
+    std::cout << test2.listSize() << std::endl;
+    test2.print();
 
     return 0;
 }
