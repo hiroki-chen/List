@@ -251,7 +251,7 @@ typename List<T>::iterator List<T>::end(void) {
 
 template<typename T>
 typename List<T>::const_iterator List<T>::end(void) const {
-    return const_iterator(tail);
+    return const_iterator(this->tail);
 }
 
 template<typename T>
