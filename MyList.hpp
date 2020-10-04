@@ -32,11 +32,11 @@ public:
         //bool notEnd;
         // I personally suppose that it may unnecessarily to mark an iterator as end_iterator.
         void assertBoundary(void) {
-            if (this->field->next == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
         void assertBoundary(void) const {
-            if (this->field->next == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
     protected:
