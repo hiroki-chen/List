@@ -19,24 +19,11 @@ int main() {
 
     List<int> test(arr);
     List<int> test2(a, 10);
-    List<int> test3(test);
-    List<char> test4(b, 5);
-    List<int> test5(a, 10);
     
-    test2.sort();
-    test2.insertHandler(test2.begin(), 3);
-    test2.updateHandler(test2.begin(), 4);
-    test2.push_front(333);
-    int i = 1;
-    for (List<int>::iterator it = test2.begin(); it != test2.end(); ++it) {
-        std::cout << *it << std::endl;
-        //if (i ++ == 3) { test2.erase(it);}
-    }
-    List<int>::iterator it = test2.begin();
-    it.advance(1);
-    std::cout << *it << std::endl;
-    //test.clear();
-    std::cout << test2.listSize() << std::endl;
+    test2.merge(test);
+    test2.print();
+    test2.deleteHandler(*(test2.end()));
+    test2.pop_back();
     test2.print();
 
     return 0;

@@ -20,6 +20,8 @@ class List {
     ListNode<T>* head;
     ListNode<T>* tail;
 
+    void init(void);
+
 public:
     class const_iterator {
     private:
@@ -30,11 +32,11 @@ public:
         //bool notEnd;
         // I personally suppose that it may unnecessarily to mark an iterator as end_iterator.
         void assertBoundary(void) {
-            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field->next == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
         void assertBoundary(void) const {
-            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field->next == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
     protected:
@@ -82,7 +84,7 @@ public:
     const_iterator begin(void) const;
     const_iterator end(void) const;
 
-    List() = delete;
+    List();
     List(T* arr, int size);
     List(std::vector<T> arr);
     List(std::string arr);
@@ -96,6 +98,7 @@ public:
     void insertHandler(const int& postion, const T& val);
     void insertHandler(const iterator& it, const T& val);
     void deleteHandler(const T& value);
+    void deleteHandler(const iterator& left, const iterator& right);
     void updateHandler(const T& value, const T& newValue);
     void updateHandler(const iterator& it, const T& val);
     void searchHandler(const T& value);
@@ -123,6 +126,7 @@ public:
     friend ListNode<T>* doReverse(ListNode<T>* head);
 
     T front(void);
+    T back(void);
     void push_back(T value);
     void pop_back(void);
     void push_front(T value);
@@ -147,56 +151,59 @@ public:
 };
 
 template<typename T>
-List<T>::List(std::vector<T> arr) {
+void List<T>::init(void) {
     this->head = new ListNode<T>(INT_MIN);
-    this->tail = this->head;
+    this->tail = new ListNode<T>(INT_MAX);
+    this->head->next = this->tail;
+    this->tail->pre = this->head;
     this->size = 0;
-    /*ListNode<T>* ptr = head;
+}
 
-    for (auto item : arr) {
-        ptr->next = new ListNode<T>(item, ptr, nullptr);
-        ptr = ptr->next;
-        size ++;
-    }*/
-    //this->tail = ptr->next;
+template<typename T>
+List<T>::List() {
+    this->init();
+}
+
+template<typename T>
+List<T>::List(std::vector<T> arr) {
+    this->init();
 
     for (auto item : arr) {
         this->push_back(item);
     }
+    std::cout << "tail == nullptr" << (tail == nullptr) << std::endl;
 }
 
 template<typename T>
 List<T>::List(T* arr, int size) {
-    this->head = new ListNode<T>(INT_MIN);
-    this->size = size;
-    ListNode<T>* ptr = head;
+    this->init();
 
     for (int i = 0; i < size; i++) {
-        ptr->next = new ListNode<T>(*(arr + i), ptr, nullptr);
-        ptr = ptr->next;
+        this->push_back(arr[i]);
     }
-    this->tail = ptr->next;
+    std::cout << "tail == nullptr" << (tail == nullptr) << std::endl;
 }
 
 
 template<typename T>
 List<T>::List(const List& list) {
-    this->head = new ListNode<T>(INT_MIN);
-    this->size = list.size;
-    ListNode<T>* ptr1 = head;
-    ListNode<T>* ptr2 = list.head->next;
+    this->init();
 
-    while (ptr2 != nullptr) {
-        ptr1->next = new ListNode<T>(ptr2->val, ptr1, nullptr);
-        ptr1 = ptr1->next;
-        ptr2 = ptr2->next;
+    for (auto it = list.begin(); it != list.end(); ++it) {
+        this->push_back(*it);
     }
-    this->tail = ptr1->next;
+    
 }
 
 template<typename T>
 List<T>::List(ListNode<T>* head) {
-    UNIMPLEMENTED
+    this->init();
+
+    while (head != nullptr) {
+        this->push_back(head->val);
+        head = head->next;
+    }
+
 }
 
 template<typename T>
@@ -206,12 +213,7 @@ void List<T>::print(void) {
         return;
     }
 
-    ListNode<T>* ptr = this->head->next;
-
-    while (ptr != nullptr) {
-        std::cout << ptr->val << " ";
-        ptr = ptr->next;
-    }
+    for (auto it = this->begin(); it != this->end(); ++it) { std::cout << *it << " "; }
 
     std::cout << std::endl;
 }
@@ -230,7 +232,7 @@ void List<T>::erase(const iterator& it) {
         delete tmp;
         size--;
     } catch (IteratorOutOfIndexException e) {
-        e.what();
+        std::cout << e.what() << std::endl;
     }
 }
 
@@ -279,8 +281,13 @@ void List<T>::insertHandler(const int& position, const T& value) {
 
 template<typename T>
 void List<T>::insertHandler(const iterator& it, const T& val) {
-    ListNode<T>* node = it.field;
-    node->pre->next = new ListNode<T>(val, node->pre, node);
+    ListNode<T>* tmp = new ListNode<T>(val);
+    tmp->pre = it.field->pre;
+    tmp->next = it.field;
+    it.field->pre->next = tmp;
+    it.field->pre = tmp;
+
+    this->size += 1;
 }
 
 template<typename T>
@@ -288,33 +295,23 @@ void List<T>::deleteHandler(const T& value) {
     ListNode<T>* ptr = this->head;
 
     while (ptr != nullptr) {
-        if (ptr->next == nullptr && ptr->val == value) {
-            ptr = nullptr;
+        if (ptr->val == value) {
+            ListNode<T>* tmp = ptr;
+            ptr->pre->next = ptr->next;
+            ptr->next->pre = tmp->pre;
+            delete tmp;
+            tmp = nullptr;
             this->size -= 1;
-            return;
-        } else if (ptr->next != nullptr && ptr->next->val == value) {
-            int cnt = 1;
-            ListNode<T>* tmp = ptr->next->next;
-            while (tmp != nullptr && tmp->val == value) {
-                tmp = tmp->next;
-                cnt ++;
-            }
-            this->size -= cnt;
-            ptr->next = tmp;
-            ptr = tmp;
-            continue;
-            //return;
         }
         ptr = ptr->next;
     }
+}
 
-    /*if (ptr->val != value) {
-        std::cout << "Could not find any corresponding value to delete. Please Try again." << std::endl;
-        return;
-    } else {
-        ptr = nullptr;
-        this->size -= 1;
-    }*/
+template<typename T>
+void List<T>::deleteHandler(const iterator& left, const iterator& right) {
+    for (auto it = left; it != right; ++it) {
+        this->erase(it);
+    }
 }
 
 template<typename T>
@@ -357,22 +354,35 @@ void List<T>::updateHandler(const iterator& it, const T& val) {
 
 template<typename T>
 void List<T>::sort(bool isBigger) {
-    this->head->next = doSort(this->head->next);
+    ListNode<T>* ptr = doSort(this->head->next);
     this->head->next = isBigger == false ? head->next : doReverse(head->next);
+    this->init();
+    while (ptr->next != nullptr) {
+        this->push_back(ptr->val);
+        ptr = ptr->next;
+    }
 }
 
 template<typename T>
 void List<T>::reverse(void) {
-    this->head->next = doReverse(this->head->next);
+    ListNode<T>* ptr = doReverse(this->head->next)->next;
+
+    this->init();
+    while (ptr != nullptr) {
+        this->push_back(ptr->val);
+        ptr = ptr->next;
+    }
 }
 
 template<typename T>
 void List<T>::merge(List<T>& list) {
-    ListNode<T>* ptr = this->head;
-    while (ptr->next != nullptr) { ptr = ptr->next; }
-    ptr->next = list.head->next;
-    this->size += list.size;
-    this->head->next = doSort(this->head->next);
+    ListNode<T>* ptr = list.head->next;
+    while (ptr != list.tail) {
+        this->push_back(ptr->val);
+        ptr = ptr->next;
+    }
+
+    this->sort();
 }
 
 template<typename T>
@@ -382,12 +392,12 @@ ListNode<T>* doSort(ListNode<T>* head) {
     //Subdevide the list by applying two pointers with different speed.
     ListNode<T>* slow = head, *fast = head -> next -> next;
     ListNode<T>* left, *right;
-    while (fast != nullptr && fast -> next != nullptr) {
+    while (fast != nullptr && fast->next != nullptr) {
         slow = slow -> next;
         fast = fast -> next -> next;
     }
-    right = doSort(slow -> next);
-    slow -> next = NULL;
+    right = doSort(slow->next);
+    slow->next = NULL;
     left = doSort(head);
     return doMerge(left, right);
 }
@@ -426,50 +436,32 @@ List<T>::List(std::string arr) {
 
 template<typename T>
 T List<T>::front(void) {
-    return this->size == 0 ? this->head->val : this->head->next->val;
+    return *(this->begin());
+}
+
+template<typename T>
+T List<T>::back(void) {
+    return this->end().field->pre->val;
 }
 
 template<typename T>
 void List<T>::push_back(T value) {
-    this->size += 1;
-    tail->next = new ListNode<T>(value);
-    tail = tail->next;
+    this->insertHandler(this->end(), value);
 }
 
 template<typename T>
 void List<T>::pop_back(void) {
-    ListNode<T>* ptr = this->head;
-    if (this->size == 0) {
-        std::cout << "Cannot do pop_back() if a list is empty!" << std:: endl;
-        return;
-    }
-    
-    while (ptr->next->next != nullptr) { ptr = ptr->next; }
-    ptr->next = nullptr;
-
-    this->size -= 1;
+    this->erase(this->end());
 }
 
 template<typename T>
 void List<T>::push_front(T value) {
-    if (this->size ++ == 0) {
-        this->head->next = new ListNode<T>(value);
-        return;
-    }
-
-    head->next = new ListNode<T>(value, head, head->next);
+    this->insertHandler(this->begin(), value);
 }
 
 template<typename T>
 void List<T>::pop_front(void) {
-    if (this->size == 0) {
-        std::cout << "Cannot do pop_front() if a list is empty!" << std::endl;
-        return;
-    }
-    ListNode<T>* tmp = this->head->next;
-    this->head->next = tmp->next;
-    delete tmp;
-    this->size -= 1;
+    this->erase(this->begin());
 }
 
 template<typename T>
@@ -536,7 +528,7 @@ T& List<T>::iterator::operator * (void) {
         this->assertBoundary();
         return this->field->val;
     } catch (IteratorOutOfIndexException e) {
-        e.what();
+        std::cout << e.what() << std::endl;
         abort();
     }
 }
@@ -547,7 +539,7 @@ const T& List<T>::iterator::operator * (void) const {
         this->assertBoundary();
         return const_iterator::operator*();
     } catch (IteratorOutOfIndexException e) {
-        e.what();
+        std::cout << e.what() << std::endl;
         abort();
     }
 }
@@ -559,7 +551,7 @@ void List<T>::iterator::advance(int distance) {
             this->assertBoundary();
             ++(*this);
         } catch (IteratorOutOfIndexException e) {
-            e.what();
+            std::cout << e.what() << std::endl;
             abort();
         }
     }
