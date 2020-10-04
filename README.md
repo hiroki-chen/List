@@ -31,6 +31,21 @@ This is a basic datastructure for **list**.
     /*
      * Some implementations used to alter the list itself.
      */ 
+    /*
+     * Some basic functions.
+     */
+
+    void insertHandler(const int& postion, const T& val);
+    void insertHandler(const iterator& it, const T& val);
+    void deleteHandler(const T& value);
+    void deleteHandler(const iterator& left, const iterator& right);
+    void updateHandler(const T& value, const T& newValue);
+    void updateHandler(const iterator& it, const T& val);
+    void searchHandler(const T& value);
+
+    /*
+     * Some implementations used to alter the list itself.
+     */ 
 
     void print(void);
     void reverse(void);
@@ -39,11 +54,19 @@ This is a basic datastructure for **list**.
     void clear(void);
     void unique(void);
 
+    /**
+     * Some manipulation functions with iterator.
+     * You can either choose the normal one or manipulate the list by applying the iterator on them. :)
+     */
+
+    void erase(const iterator& it);
+
     friend ListNode<T>* doMerge(ListNode<T>* left, ListNode<T>* right);
     friend ListNode<T>* doSort(ListNode<T>* head);
     friend ListNode<T>* doReverse(ListNode<T>* head);
 
     T front(void);
+    T back(void);
     void push_back(T value);
     void pop_back(void);
     void push_front(T value);
@@ -95,3 +118,7 @@ List<int> test5(a, 10);
 1. Added more support for `iterator`;
 2. Added pointer for previous nodes;
 3. Fixed some bugs.
+
+### 2020-10-4
+1. Fixed numerous bugs. Now you can use `end()` or `delete` without danger;
+2. All basic functions can be called by using `iterator`.
