@@ -122,3 +122,7 @@ List<int> test5(a, 10);
 ### 2020-10-4
 1. Fixed numerous bugs. Now you can use `end()` or `delete` without danger;
 2. All basic functions can be called by using `iterator`.
+
+### 2020-10-5
+1. Added `ConstIteratorCannotBeOperatedException`, if any `const_iterator` is to be modified;
+2. Added `-=` and `+=` for `iterator`.
