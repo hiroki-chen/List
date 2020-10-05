@@ -22,8 +22,9 @@ int main() {
     
     test2.merge(test);
     test2.print();
-    test2.deleteHandler(*(test2.end()));
-    test2.pop_back();
+    List<int>::iterator it = test.begin();
+    it += 2;// Okay. test it passed
+    test2.erase(it);
     test2.print();
 
     return 0;

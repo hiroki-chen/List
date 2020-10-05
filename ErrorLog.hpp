@@ -19,4 +19,20 @@ public:
     const char* what() const noexcept override { return info; }
 };
 
+class IteratorMisMatchException : public std::exception {
+    const char* info;
+
+public:
+    IteratorMisMatchException() : info("Iterator does not point to the current list you want to manipulate!") {}
+    const char* what() const noexcept override { return info; }
+};
+
+class ConstIteratorCannotBeOperatedException : public std::exception {
+    const char* info;
+
+public:
+    ConstIteratorCannotBeOperatedException() : info("You cannot modify a const iterator.") {}
+    const char* what() const noexcept override { return info; }
+};
+
 #endif

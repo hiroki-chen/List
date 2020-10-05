@@ -32,27 +32,34 @@ public:
         //bool notEnd;
         // I personally suppose that it may unnecessarily to mark an iterator as end_iterator.
         void assertBoundary(void) {
-            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field == nullptr || this->field->pre == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
         void assertBoundary(void) const {
-            if (this->field == nullptr) { throw IteratorOutOfIndexException(); }
+            if (this->field == nullptr || this->field->pre == nullptr) { throw IteratorOutOfIndexException(); }
         }
 
     protected:
         ListNode<T>* field;
         friend class List<T>;
+        const List<T>* cur;
 
     protected:
         const_iterator() : field(nullptr) {}
         const_iterator(ListNode<T>* node) : field(node) {}
+        const_iterator(const List<T>* theList, ListNode<T>* node) : cur(theList), field(node) {}
 
     public:
         const T& operator * (void) const;
         const_iterator& operator ++ (void);
         const_iterator operator ++ (int);
+        const_iterator& operator -- (void);
+        const_iterator operator -- (int);
         bool operator == (const const_iterator& it) const;
         bool operator != (const const_iterator& it) const;
+
+        void operator += (const int& distance) = delete;
+        void operator -= (const int& distance) = delete;
     };
     
     class iterator : public const_iterator {
@@ -60,11 +67,17 @@ public:
         T& operator * (void);
         const T& operator * (void) const;
         iterator& operator ++ (void);
+        iterator operator ++ (int);
+        iterator& operator -- (void);
+        iterator operator -- (int);
+        void operator += (const int& distance);
+        void operator -= (const int& distance);
 
         void advance (int distance);
 
         iterator() : const_iterator() {}
         iterator(ListNode<T>* node) : const_iterator(node) {}
+        iterator(const List<T>* cur, ListNode<T>* node) : const_iterator(cur, node) {}
     };
     /*
      * Iterator for class List.
@@ -113,6 +126,7 @@ public:
     void merge(List<T>& list);
     void clear(void);
     void unique(void);
+    iterator find(const iterator& begin , const iterator& end, const T& value);
 
     /**
      * Some manipulation functions with iterator.
@@ -171,7 +185,6 @@ List<T>::List(std::vector<T> arr) {
     for (auto item : arr) {
         this->push_back(item);
     }
-    std::cout << "tail == nullptr" << (tail == nullptr) << std::endl;
 }
 
 template<typename T>
@@ -181,7 +194,6 @@ List<T>::List(T* arr, int size) {
     for (int i = 0; i < size; i++) {
         this->push_back(arr[i]);
     }
-    std::cout << "tail == nullptr" << (tail == nullptr) << std::endl;
 }
 
 
@@ -189,7 +201,7 @@ template<typename T>
 List<T>::List(const List& list) {
     this->init();
 
-    for (auto it = list.begin(); it != list.end(); ++it) {
+    for (auto it = list.begin(); it != list.end(); it++) {
         this->push_back(*it);
     }
     
@@ -221,7 +233,9 @@ void List<T>::print(void) {
 template<typename T>
 void List<T>::erase(const iterator& it) {
     try {
-        it.assertBoundary();
+        if (it != this->end()) { it.assertBoundary(); }
+        if (it.cur != this) { throw IteratorMisMatchException(); }
+
         ListNode<T>* tmp = it.field;
         ListNode<T>* pre = tmp->pre;
         ListNode<T>* next = tmp->next;
@@ -233,27 +247,29 @@ void List<T>::erase(const iterator& it) {
         size--;
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
+    } catch (IteratorMisMatchException e) {
+        std::cout << e.what() << std::endl;
     }
 }
 
 template<typename T>
 typename List<T>::iterator List<T>::begin(void) {
-    return iterator(this->head->next);
+    return iterator(this, this->head->next);
 }
 
 template<typename T>
 typename List<T>::const_iterator List<T>::begin(void) const {
-    return const_iterator(this->head->next);
+    return const_iterator(this, this->head->next);
 }
 
 template<typename T>
 typename List<T>::iterator List<T>::end(void) {
-    return iterator(this->tail);
+    return iterator(this, this->tail);
 }
 
 template<typename T>
 typename List<T>::const_iterator List<T>::end(void) const {
-    return const_iterator(this->tail);
+    return const_iterator(this, this->tail);
 }
 
 template<typename T>
@@ -281,13 +297,23 @@ void List<T>::insertHandler(const int& position, const T& value) {
 
 template<typename T>
 void List<T>::insertHandler(const iterator& it, const T& val) {
-    ListNode<T>* tmp = new ListNode<T>(val);
-    tmp->pre = it.field->pre;
-    tmp->next = it.field;
-    it.field->pre->next = tmp;
-    it.field->pre = tmp;
+    try {
+        if (this != it.cur) { throw IteratorMisMatchException (); }
+        if (it != this->end()) { it.assertBoundary(); }
 
-    this->size += 1;
+        ListNode<T>* tmp = new ListNode<T>(val);
+        tmp->pre = it.field->pre;
+        tmp->next = it.field;
+        it.field->pre->next = tmp;
+        it.field->pre = tmp;
+
+        this->size += 1;
+    } catch (IteratorMisMatchException e) {
+        std::cout << e.what() << std::endl;
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    
 }
 
 template<typename T>
@@ -330,6 +356,14 @@ void List<T>::searchHandler(const T& value) {
     }
 
     std::cout << "It seems that there is no such thing. Please check your input again." << std::endl;
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::find(const iterator& begin, const iterator& end, const T& value) {
+    for (List<T>::iterator it = begin; it != end; it ++) {
+        if (it.field->val == value) { return it; }
+    }
+    return this->end();
 }
 
 template<typename T>
@@ -490,21 +524,45 @@ template<typename T>
 typename List<T>::const_iterator&
 List<T>::const_iterator::operator ++ (void) {
     try {
-        this->assertBoundary();
         this->field = this->field->next;
+        this->assertBoundary();
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
     }
     return *this;
-    //this->assertBoundary();
+}
+
+template<typename T>
+typename List<T>::const_iterator&
+List<T>::const_iterator::operator -- (void) {
+    try {
+        this->assertBoundary();
+        this->field = this->field->pre;
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    return *this;
 }
 
 template<typename T>
 typename List<T>::const_iterator
 List<T>::const_iterator::operator ++ (int) {
-    const_iterator old(this->field);
+    const_iterator old(this->cur, this->field);
     try {
+        this->assertBoundary();
         ++(*this);
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    return old;
+}
+
+template<typename T>
+typename List<T>::const_iterator
+List<T>::const_iterator::operator -- (int) {
+    const_iterator old(this->cur, this->field);
+    try {
+        --(*this);
         this->assertBoundary();
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
@@ -514,7 +572,8 @@ List<T>::const_iterator::operator ++ (int) {
 
 template<typename T>
 bool List<T>::const_iterator::operator == (const const_iterator& it) const {
-    return this->field == it.field;
+    return (this->field == it.field) &&
+           (this->cur == it.cur);
 }
 
 template<typename T>
@@ -546,13 +605,26 @@ const T& List<T>::iterator::operator * (void) const {
 
 template<typename T>
 void List<T>::iterator::advance(int distance) {
-    while (distance-- > 0) {
-        try {
-            this->assertBoundary();
-            ++(*this);
-        } catch (IteratorOutOfIndexException e) {
-            std::cout << e.what() << std::endl;
-            abort();
+    if (distance ==  0) { return; }
+    else if (distance > 0) {
+        while (distance-- > 0) {
+            try {
+                this->assertBoundary();
+                ++(*this);
+            } catch (IteratorOutOfIndexException e) {
+                std::cout << e.what() << std::endl;
+                abort();
+            }
+        }
+    } else {
+        while (distance++ < 0) {
+            try {
+                this->assertBoundary();
+                --(*this);
+            } catch (IteratorOutOfIndexException e) {
+                std::cout << e.what() << std::endl;
+                abort();
+            }
         }
     }
 }
@@ -566,7 +638,51 @@ typename List<T>::iterator& List<T>::iterator::operator ++ (void) {
         std::cout << e.what() << std::endl;
     }
     return *this;
-    //this->assertBoundary();
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::iterator::operator ++ (int) {
+    iterator old(this->cur, this->field);
+    try {
+        this->assertBoundary();
+        ++(*this);
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    return old;
+}
+
+template<typename T>
+typename List<T>::iterator& List<T>::iterator::operator -- (void) {
+    try {
+        this->assertBoundary();
+        this->field = this->field->pre;
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    return *this;
+}
+
+template<typename T>
+typename List<T>::iterator List<T>::iterator::operator -- (int) {
+    iterator old(this->cur, this->field);
+    try {
+        this->assertBoundary();
+        --(*this);
+    } catch (IteratorOutOfIndexException e) {
+        std::cout << e.what() << std::endl;
+    }
+    return old;
+}
+
+template<typename T>
+void List<T>::iterator::operator += (const int& distance) {
+    this->advance(distance);
+}
+
+template<typename T>
+void List<T>::iterator::operator -= (const int& distance) {
+    this->advance(distance);
 }
 
 template<typename T>
