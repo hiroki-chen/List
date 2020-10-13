@@ -126,3 +126,7 @@ List<int> test5(a, 10);
 ### 2020-10-5
 1. Added `ConstIteratorCannotBeOperatedException`, if any `const_iterator` is to be modified;
 2. Added `-=` and `+=` for `iterator`.
+
+### 202010-13
+1. Added functions for `split` as well as `meld`;
+2. Fixed bugs for `CircleList`.
