@@ -16,6 +16,7 @@
 
 template<typename T>
 class List {
+protected:
     int size;
     ListNode<T>* head;
     ListNode<T>* tail;
@@ -123,9 +124,13 @@ public:
     void print(void);
     void reverse(void);
     void sort(bool bigger = false);
+    void split(List<T>& a, List<T>& b);
     void merge(List<T>& list);
     void clear(void);
     void unique(void);
+    void makeCircle(void);
+    
+    
     iterator find(const iterator& begin , const iterator& end, const T& value);
 
     /**
@@ -148,11 +153,12 @@ public:
     int listSize(void);
     bool empty(void);
 
+    T& operator [](int index);
     bool operator == (List<T> list);
     bool operator != (List<T> list);
     void operator += (T value);
     void operator += (List<T>& list) = delete; // You cannot use this because this is a forward list.
-
+    
     /*
      * For test.
      */
@@ -161,7 +167,20 @@ public:
         std::cout << this->head->val << std::endl;
     }
 
-    ~List();
+    //~List();
+};
+
+template<typename T>
+class CycleList : public List<T> {
+private:
+    void makeCycle(void);
+public:
+    CycleList() = delete;
+    CycleList(T* arr, int size) : List<T>(arr, size) { this->makeCycle(); }
+    CycleList(std::vector<T> arr) : List<T>(arr) { this->makeCycle(); }
+    CycleList(std::string arr) = delete;
+    CycleList(const CycleList& list) : List<T>(list) { this->makeCycle(); }
+    CycleList(ListNode<T>* head) : List<T>(head) { this->makeCycle(); }
 };
 
 template<typename T>
@@ -219,15 +238,44 @@ List<T>::List(ListNode<T>* head) {
 }
 
 template<typename T>
-void List<T>::print(void) {
-    if (this->size == 0) {
-        std::cout << "Empty List!" << std::endl;
-        return;
+void List<T>::makeCircle(void) {
+    if (this->size != 0) {
+        this->tail->next = this->head;
     }
+}
 
+template<typename T>
+void List<T>::print(void) {
     for (auto it = this->begin(); it != this->end(); ++it) { std::cout << *it << " "; }
 
     std::cout << std::endl;
+}
+
+//OK.
+
+template<typename T>
+void List<T>::split(List<T>& a, List<T>& b) {
+    if (this->size == 0) { return; }
+    ListNode<T>* odd = this->head->next, *even = this->head->next->next, *evenHead = even;
+
+    while (even != head && even->next != head) {
+        odd->next = even->next;
+        even->next->pre = odd;
+        odd = odd->next;
+        even->next = odd->next;
+        odd->next->pre = even;
+        even = even->next;
+    }
+    a.head = this->head;
+    a.tail = odd;
+    b.head = new ListNode<T>(INT_MIN, evenHead);
+    b.tail = new ListNode<T>(INT_MAX, even, nullptr);
+    even->pre->next = b.tail;
+
+    //debug
+    /*
+     * Even is now the head.
+     */
 }
 
 template<typename T>
@@ -288,9 +336,7 @@ void List<T>::insertHandler(const int& position, const T& value) {
         while (i++ != position - 1) {
             ptr = ptr->next;
         }
-        ListNode<T>* tmp = ptr->next;
-        ptr->next = new ListNode<T>(value);
-        ptr->next->next = tmp;
+        ptr->next = new ListNode<T>(value, ptr->next);
         this->size += 1;
     }
 }
@@ -424,11 +470,11 @@ ListNode<T>* doSort(ListNode<T>* head) {
     if (head == nullptr || head->next == nullptr) { return head; }
 
     //Subdevide the list by applying two pointers with different speed.
-    ListNode<T>* slow = head, *fast = head -> next -> next;
+    ListNode<T>* slow = head, *fast = head->next->next;
     ListNode<T>* left, *right;
     while (fast != nullptr && fast->next != nullptr) {
-        slow = slow -> next;
-        fast = fast -> next -> next;
+        slow = slow->next;
+        fast = fast->next->next;
     }
     right = doSort(slow->next);
     slow->next = NULL;
@@ -515,6 +561,7 @@ void List<T>::clear(void) {
     this->size = 0;
 }
 
+
 template<typename T>
 const T& List<T>::const_iterator::operator * (void) const {
     return this->field->val;
@@ -588,7 +635,6 @@ T& List<T>::iterator::operator * (void) {
         return this->field->val;
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
-        abort();
     }
 }
 
@@ -599,7 +645,6 @@ const T& List<T>::iterator::operator * (void) const {
         return const_iterator::operator*();
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
-        abort();
     }
 }
 
@@ -613,7 +658,6 @@ void List<T>::iterator::advance(int distance) {
                 ++(*this);
             } catch (IteratorOutOfIndexException e) {
                 std::cout << e.what() << std::endl;
-                abort();
             }
         }
     } else {
@@ -623,7 +667,6 @@ void List<T>::iterator::advance(int distance) {
                 --(*this);
             } catch (IteratorOutOfIndexException e) {
                 std::cout << e.what() << std::endl;
-                abort();
             }
         }
     }
@@ -712,14 +755,26 @@ void List<T>::operator += (T value) {
 }
 
 template<typename T>
+T& List<T>::operator [](int index) {
+    try {
+        if (this->size <= index) { throw ListOutOfIndexException(); }
+
+        int i = -1;
+        ListNode<T>* ptr = this->head;
+        while (i ++ != index) { ptr = ptr->next; }
+        return ptr->val;
+    } catch (ListOutOfIndexException e) { std::cout << e.what() << std::endl; }
+}
+
+/*template<typename T>
 List<T>::~List() {
     ListNode<T>* tmp;
-    while (head->next != nullptr) {
+    while (head->next != nullptr && head->next != sign) {
         tmp = head->next;
         delete head;
         head = tmp;
     }
     delete head;
 }
-
+*/
 #endif
