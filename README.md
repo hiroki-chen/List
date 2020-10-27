@@ -132,4 +132,5 @@ List<int> test5(a, 10);
 2. Fixed bugs for `CircleList`.
 
 ### 2020-10-27
-1. I added stack based on `List`.
+1. Added stack based on `List`;
+2. Added `stringify`.
