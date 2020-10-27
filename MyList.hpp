@@ -22,6 +22,7 @@ protected:
     ListNode<T>* tail;
 
     void init(void);
+    std::vector<T> stringify(const std::string& input);
 
 public:
     class const_iterator {
@@ -101,9 +102,9 @@ public:
     List();
     List(T* arr, int size);
     List(std::vector<T> arr);
-    List(std::string arr);
-    List(const List& list);
     List(ListNode<T>* head);
+    List(const std::string& input);
+    List(const List& list);
 
     /*
      * Some basic functions.
@@ -167,7 +168,7 @@ public:
         std::cout << this->head->val << std::endl;
     }
 
-    //~List();
+    ~List();
 };
 
 template<typename T>
@@ -215,6 +216,11 @@ List<T>::List(T* arr, int size) {
     }
 }
 
+template<typename T>
+List<T>::List(const std::string& input) {
+    this->init();
+    *this = List<T>(this->stringify(input));
+}
 
 template<typename T>
 List<T>::List(const List& list) {
@@ -255,7 +261,11 @@ void List<T>::print(void) {
 
 template<typename T>
 void List<T>::split(List<T>& a, List<T>& b) {
+    a.size = (this->size + 1 )>> 1;
+    b.size = this->size >> 1;
     if (this->size == 0) { return; }
+
+    //odd traverses all the odd positions, evenHead is the head of the even one.
     ListNode<T>* odd = this->head->next, *even = this->head->next->next, *evenHead = even;
 
     while (even != head && even->next != head) {
@@ -266,11 +276,13 @@ void List<T>::split(List<T>& a, List<T>& b) {
         odd->next->pre = even;
         even = even->next;
     }
+
     a.head = this->head;
-    a.tail = odd;
+    a.tail = odd == this->tail ? odd : odd->next;
     b.head = new ListNode<T>(INT_MIN, evenHead);
     b.tail = new ListNode<T>(INT_MAX, even, nullptr);
     even->pre->next = b.tail;
+    this->size = 0;
 
     //debug
     /*
@@ -466,8 +478,26 @@ void List<T>::merge(List<T>& list) {
 }
 
 template<typename T>
+std::vector<T> List<T>::stringify(const std::string& input) {
+    std::string s = input.substr(1, input.size() - 2);
+    std::istringstream iss(s);
+    std::string buf;
+    std::vector<T> ans;
+
+    while (getline(iss, buf, ',')) {
+        ans.push_back(stoi(buf));
+    }
+
+    return ans;
+}
+
+template<typename T>
 ListNode<T>* doSort(ListNode<T>* head) {
-    if (head == nullptr || head->next == nullptr) { return head; }
+    /*
+     * No need for judge the tail or head as they are definitely the biggest and smallest one in a list.
+     * :)
+     */ 
+    if (head == nullptr || head->next == nullptr) { return head; } 
 
     //Subdevide the list by applying two pointers with different speed.
     ListNode<T>* slow = head, *fast = head->next->next;
@@ -477,7 +507,7 @@ ListNode<T>* doSort(ListNode<T>* head) {
         fast = fast->next->next;
     }
     right = doSort(slow->next);
-    slow->next = NULL;
+    slow->next = nullptr;
     left = doSort(head);
     return doMerge(left, right);
 }
@@ -507,11 +537,6 @@ ListNode<T>* doReverse(ListNode<T>* head) {
     head->next->next = head;
     head->next = nullptr;
     return newHead;
-}
-
-template<typename T>
-List<T>::List(std::string arr) {
-    UNIMPLEMENTED
 }
 
 template<typename T>
@@ -635,6 +660,7 @@ T& List<T>::iterator::operator * (void) {
         return this->field->val;
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
+        return this->cur->begin().field->val;
     }
 }
 
@@ -645,6 +671,7 @@ const T& List<T>::iterator::operator * (void) const {
         return const_iterator::operator*();
     } catch (IteratorOutOfIndexException e) {
         std::cout << e.what() << std::endl;
+        return this->cur->begin().field->val;
     }
 }
 
@@ -766,15 +793,19 @@ T& List<T>::operator [](int index) {
     } catch (ListOutOfIndexException e) { std::cout << e.what() << std::endl; }
 }
 
-/*template<typename T>
+template<typename T>
 List<T>::~List() {
-    ListNode<T>* tmp;
-    while (head->next != nullptr && head->next != sign) {
-        tmp = head->next;
-        delete head;
-        head = tmp;
+    /*
+    if (this->size == 0) { return; }
+    ListNode<T>* ptr = this->head;
+
+    while (ptr != this->tail) {
+        auto tmp = ptr;
+        ptr = ptr->next;
+        delete tmp;
     }
-    delete head;
+    if (this->tail != nullptr) { delete this->tail; } */
 }
-*/
+
+
 #endif
